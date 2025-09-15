@@ -1,0 +1,16 @@
+ENG prompt (for Midjourney / SD / DALL·E):
+Ultra photorealistic 4K render of an attic modern minimalist kitchen, matte black handleless cabinets, warm oak countertop and matching backsplash, thick oak top island with black base, exposed concrete structural column integrated with open oak shelves, sloped oak-clad ceiling with warm indirect LED strip along the slope, linear black pendant above the island, soft warm ambient lighting (2700–3000K), natural daylight from left window, clean minimalist Scandinavian-Japanese fusion, highly detailed materials and realistic shadows, 3D photorealistic, 3840x2160, cinematic lighting, CRI 95.
+
+Negative prompt:
+clutter, people, watermark, blurred face, noisy, lowres, distorted, cartoon, oversaturated, plastic shine
+
+Midjourney settings suggestion:
+--ar 16:9 --q 2 --stylize 50 --v 6
+
+Stable Diffusion (Automatic1111) suggestion:
+- Model: photorealistic v1.5
+- Sampler: DPM++ 2M Karras
+- Steps: 30
+- CFG Scale: 6.5
+- Size: 3840x2160 (if GPU memory allows) or generate at 2048x1152 then upscale x2 with RealESRGAN
+- Hires fix: enabled (resize by 2, denoising 0.6) for best quality

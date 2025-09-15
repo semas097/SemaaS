@@ -35,7 +35,14 @@ const links = [
 
 const samplePageLinks = [
   {
-    text: "Page 2",
+    text: "4K Kitchen Visualizer",
+    url: "kitchen-viewer",
+    badge: true,
+    description:
+      "Interactive 4K kitchen rendering system with panoramic viewing",
+  },
+  {
+    text: "Page 2", 
     url: "page-2",
     badge: false,
     description:
@@ -89,6 +96,14 @@ const IndexPage = () => (
         {samplePageLinks.map((link, i) => (
           <React.Fragment key={link.url}>
             <Link to={link.url}>{link.text}</Link>
+            {link.badge && <span style={{
+              backgroundColor: '#4CAF50',
+              color: 'white',
+              fontSize: '10px',
+              padding: '2px 6px',
+              borderRadius: '10px',
+              marginLeft: '5px'
+            }}>NEW</span>}
             {i !== samplePageLinks.length - 1 && <> · </>}
           </React.Fragment>
         ))}

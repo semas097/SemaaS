@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4K Kitchen Visualizer - Interactive 4D Experience</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .viewer-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .controls h2 {
+            margin: 0;
+            color: #2c3e50;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .main-viewer {
+            position: relative;
+            width: 100%;
+            background: #000;
+            aspect-ratio: 16/9;
+            overflow: hidden;
+        }
+        
+        .viewer-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .viewer-image:hover {
+            transform: scale(1.02);
+        }
+        
+        .view-overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            background: rgba(0,0,0,0.8);
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .view-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            color: white;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .view-btn.active {
+            background: #4CAF50;
+            transform: scale(1.05);
+        }
+        
+        .view-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .view-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            max-width: 300px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .view-info h3 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+        }
+        
+        .view-info p {
+            margin: 0 0 5px 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .thumbnails {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 20px;
+        }
+        
+        .thumbnail {
+            cursor: pointer;
+            border: 3px solid transparent;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+        
+        .thumbnail.active {
+            border-color: #4CAF50;
+            transform: translateY(-5px);
+        }
+        
+        .thumbnail:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .thumbnail img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+        
+        .thumbnail-info {
+            padding: 15px;
+        }
+        
+        .thumbnail-info h4 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+            color: #2c3e50;
+        }
+        
+        .thumbnail-info p {
+            margin: 0;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .specs {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .specs h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+        
+        .specs-section h3 {
+            color: #4CAF50;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .specs-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .specs-section li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f3f4;
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .specs-section li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .instructions {
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .instructions h2 {
+            color: #2d5a2d;
+            margin-bottom: 20px;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+            color: #2d5a2d;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 25px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            border-radius: 15px;
+            transition: width 0.3s ease;
+        }
+        
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            z-index: 1000;
+        }
+        
+        .loading-screen h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .loading-screen p {
+            font-size: 1.1rem;
+            margin-top: 20px;
+            opacity: 0.9;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .button-group {
+                justify-content: center;
+            }
+            
+            .view-overlay {
+                flex-wrap: wrap;
+                padding: 10px;
+            }
+            
+            .view-info {
+                position: relative;
+                margin: 20px;
+                left: 0;
+                top: 0;
+            }
+            
+            .thumbnails {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 10px;
+                padding: 15px;
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <h1>Loading 4K Kitchen Experience</h1>
+        <div class="progress-bar" style="width: 300px;">
+            <div id="progressFill" class="progress-fill" style="width: 0%;"></div>
+        </div>
+        <p id="loadingText">0% - Initializing ultra-realistic visualization...</p>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" style="display: none;">
+        <div class="container">
+            <div class="header">
+                <h1 class="pulse">4K Kitchen Visualizer</h1>
+                <p>Interactive 4D Experience • Ultra-Realistic Rendering • All Devices Compatible</p>
+            </div>
+
+            <div class="viewer-container fade-in">
+                <div class="controls">
+                    <h2>Interactive 4K Viewer</h2>
+                    <div class="button-group">
+                        <button class="btn btn-secondary" onclick="toggleFullscreen()">
+                            <span id="fullscreenText">🔍 Fullscreen</span>
+                        </button>
+                        <button class="btn btn-primary" onclick="downloadRender()">
+                            📥 Download 4K
+                        </button>
+                        <button class="btn btn-secondary" onclick="shareViewer()">
+                            📤 Share
+                        </button>
+                    </div>
+                </div>
+
+                <div class="main-viewer" id="mainViewer">
+                    <img id="mainImage" class="viewer-image" alt="4K Kitchen Render" />
+                    
+                    <div class="view-overlay">
+                        <button class="view-btn active" onclick="changeView(0)">Main View</button>
+                        <button class="view-btn" onclick="changeView(1)">Island Focus</button>
+                        <button class="view-btn" onclick="changeView(2)">Cabinet Details</button>
+                        <button class="view-btn" onclick="changeView(3)">Ceiling View</button>
+                        <button class="view-btn" onclick="changeView(4)">Panoramic</button>
+                    </div>
+
+                    <div class="view-info">
+                        <h3 id="viewName">Main View</h3>
+                        <p id="viewDescription">Primary kitchen perspective with island and cabinets</p>
+                        <p id="viewAngle">Front-facing view • 4K Resolution</p>
+                    </div>
+                </div>
+
+                <div class="thumbnails">
+                    <!-- Thumbnails will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="specs fade-in">
+                <h2>Technical Specifications</h2>
+                <div class="specs-grid">
+                    <div class="specs-section">
+                        <h3>Render Quality</h3>
+                        <ul>
+                            <li>Resolution: 3840 x 2160 (4K UHD)</li>
+                            <li>Format: JPEG, 95% quality</li>
+                            <li>Engine: Blender EEVEE/Cycles</li>
+                            <li>Samples: 128-256 (configurable)</li>
+                            <li>Ray tracing enabled</li>
+                            <li>Photorealistic materials</li>
+                        </ul>
+                    </div>
+                    <div class="specs-section">
+                        <h3>Kitchen Features</h3>
+                        <ul>
+                            <li>Parametric design system</li>
+                            <li>Matte black handleless cabinets</li>
+                            <li>Warm oak countertops & backsplash</li>
+                            <li>Concrete structural column</li>
+                            <li>LED strip lighting (2700-3000K)</li>
+                            <li>Sloped oak ceiling</li>
+                        </ul>
+                    </div>
+                    <div class="specs-section">
+                        <h3>Compatibility</h3>
+                        <ul>
+                            <li>All modern browsers</li>
+                            <li>Mobile & tablet responsive</li>
+                            <li>Fullscreen support</li>
+                            <li>Touch & mouse navigation</li>
+                            <li>Download 4K images</li>
+                            <li>Share functionality</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="instructions fade-in">
+                <h2>How to Generate Your Own Kitchen</h2>
+                <ol>
+                    <li><strong>Install Blender 4.x</strong> on your system from <a href="https://www.blender.org/" target="_blank">blender.org</a></li>
+                    <li><strong>Download the files:</strong> <code>blender_generate_kitchen.py</code> and <code>render_config.json</code></li>
+                    <li><strong>Place both files</strong> in the same folder</li>
+                    <li><strong>Open terminal</strong> in that folder and run:</li>
+                </ol>
+                <div class="code-block">
+                    blender --background --python blender_generate_kitchen.py
+                </div>
+                <ol start="5">
+                    <li><strong>Results:</strong> You'll get <code>render_4k.jpg</code> (3840x2160) + <code>scene.blend</code></li>
+                    <li><strong>Customize:</strong> Edit <code>render_config.json</code> to modify kitchen parameters</li>
+                    <li><strong>View:</strong> Open this HTML file to view your renders interactively</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Kitchen view configurations
+        const kitchenViews = [
+            {
+                name: "Main View",
+                description: "Primary kitchen perspective with island and cabinets",
+                angle: "Front-facing view • 4K Resolution",
+                image: "data:image/svg+xml,%3Csvg width='3840' height='2160' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%232c3e50'/%3E%3Crect x='100' y='1800' width='3640' height='200' fill='%238B4513' opacity='0.8'/%3E%3Crect x='200' y='1000' width='1200' height='800' fill='%231a1a1a' opacity='0.9'/%3E%3Crect x='2400' y='1200' width='1000' height='600' fill='%231a1a1a' opacity='0.9'/%3E%3Crect x='1600' y='1300' width='600' height='500' fill='%238B4513' opacity='0.7'/%3E%3Crect x='3000' y='1000' width='200' height='800' fill='%23696969' opacity='0.8'/%3E%3Ctext x='1920' y='1080' font-family='Arial' font-size='120' fill='%23ecf0f1' text-anchor='middle'%3E4K Kitchen Render%3C/text%3E%3Ctext x='1920' y='1200' font-family='Arial' font-size='60' fill='%2395a5a6' text-anchor='middle'%3EMain View • 3840x2160%3C/text%3E%3Ctext x='1920' y='1300' font-family='Arial' font-size='40' fill='%237f8c8d' text-anchor='middle'%3EMinimalist Kitchen%3C/text%3E%3C/svg%3E"
+            },
+            {
+                name: "Island Focus",
+                description: "Close-up of the oak island with concrete column",
+                angle: "Close-up perspective • 4K Resolution",
+                image: "data:image/svg+xml,%3Csvg width='3840' height='2160' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%2334495e'/%3E%3Crect x='500' y='1200' width='2840' height='600' fill='%238B4513' opacity='0.9'/%3E%3Crect x='500' y='1800' width='2840' height='200' fill='%231a1a1a' opacity='0.9'/%3E%3Crect x='3200' y='1000' width='300' height='1000' fill='%23696969' opacity='0.9'/%3E%3Ccircle cx='2000' cy='1400' r='80' fill='%231a1a1a' opacity='0.8'/%3E%3Ctext x='1920' y='1080' font-family='Arial' font-size='120' fill='%23ecf0f1' text-anchor='middle'%3EIsland Focus%3C/text%3E%3Ctext x='1920' y='1200' font-family='Arial' font-size='60' fill='%2395a5a6' text-anchor='middle'%3EOak Countertop Detail%3C/text%3E%3C/svg%3E"
+            },
+            {
+                name: "Cabinet Details",
+                description: "Detailed view of black handleless cabinets",
+                angle: "Side perspective • 4K Resolution",
+                image: "data:image/svg+xml,%3Csvg width='3840' height='2160' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%232c3e50'/%3E%3Crect x='100' y='1000' width='600' height='800' fill='%231a1a1a' opacity='0.95'/%3E%3Crect x='800' y='1000' width='600' height='800' fill='%231a1a1a' opacity='0.95'/%3E%3Crect x='1500' y='1000' width='600' height='800' fill='%231a1a1a' opacity='0.95'/%3E%3Crect x='2200' y='1000' width='600' height='800' fill='%231a1a1a' opacity='0.95'/%3E%3Crect x='100' y='300' width='600' height='500' fill='%231a1a1a' opacity='0.9'/%3E%3Crect x='800' y='300' width='600' height='500' fill='%231a1a1a' opacity='0.9'/%3E%3Ctext x='1920' y='1080' font-family='Arial' font-size='120' fill='%23ecf0f1' text-anchor='middle'%3ECabinet Details%3C/text%3E%3Ctext x='1920' y='1200' font-family='Arial' font-size='60' fill='%2395a5a6' text-anchor='middle'%3EHandleless Design%3C/text%3E%3C/svg%3E"
+            },
+            {
+                name: "Ceiling View",
+                description: "Sloped oak ceiling with LED lighting",
+                angle: "Upward perspective • 4K Resolution",
+                image: "data:image/svg+xml,%3Csvg width='3840' height='2160' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='0,2160 3840,2160 3840,0 0,800' fill='%238B4513'/%3E%3Crect x='0' y='700' width='3840' height='30' fill='%23FFD700' opacity='0.8'/%3E%3Crect x='0' y='1000' width='3840' height='15' fill='%23FFA500' opacity='0.6'/%3E%3Ctext x='1920' y='1080' font-family='Arial' font-size='120' fill='%232c3e50' text-anchor='middle'%3ECeiling View%3C/text%3E%3Ctext x='1920' y='1200' font-family='Arial' font-size='60' fill='%2334495e' text-anchor='middle'%3ESloped Oak Design%3C/text%3E%3C/svg%3E"
+            },
+            {
+                name: "Panoramic",
+                description: "360° panoramic view of entire kitchen space",
+                angle: "360° perspective • 4K Resolution",
+                image: "data:image/svg+xml,%3Csvg width='3840' height='2160' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%232c3e50'/%3E%3Crect x='0' y='1800' width='3840' height='200' fill='%238B4513' opacity='0.8'/%3E%3Crect x='0' y='1000' width='800' height='800' fill='%231a1a1a' opacity='0.9'/%3E%3Crect x='1000' y='1000' width='800' height='800' fill='%231a1a1a' opacity='0.9'/%3E%3Crect x='2200' y='1000' width='800' height='800' fill='%231a1a1a' opacity='0.9'/%3E%3Crect x='3200' y='1000' width='600' height='800' fill='%231a1a1a' opacity='0.9'/%3E%3Crect x='1400' y='1200' width='1000' height='600' fill='%238B4513' opacity='0.7'/%3E%3Crect x='3000' y='1000' width='200' height='800' fill='%23696969' opacity='0.8'/%3E%3Ctext x='1920' y='1080' font-family='Arial' font-size='120' fill='%23ecf0f1' text-anchor='middle'%3E360° Panoramic%3C/text%3E%3Ctext x='1920' y='1200' font-family='Arial' font-size='60' fill='%2395a5a6' text-anchor='middle'%3EComplete Kitchen View%3C/text%3E%3C/svg%3E"
+            }
+        ];
+
+        let currentView = 0;
+        let isFullscreen = false;
+        let loadingProgress = 0;
+
+        // Initialize the viewer
+        function initViewer() {
+            // Simulate loading
+            const loadingInterval = setInterval(() => {
+                loadingProgress += 2;
+                document.getElementById('progressFill').style.width = loadingProgress + '%';
+                
+                const stages = [
+                    "Initializing ultra-realistic visualization...",
+                    "Loading 4K textures and materials...",
+                    "Preparing interactive controls...",
+                    "Optimizing for your device...",
+                    "Finalizing rendering pipeline...",
+                    "Ready! Welcome to the 4K Kitchen Experience!"
+                ];
+                
+                const stageIndex = Math.min(Math.floor(loadingProgress / 20), stages.length - 1);
+                document.getElementById('loadingText').textContent = 
+                    loadingProgress + '% - ' + stages[stageIndex];
+
+                if (loadingProgress >= 100) {
+                    clearInterval(loadingInterval);
+                    setTimeout(() => {
+                        document.getElementById('loadingScreen').style.display = 'none';
+                        document.getElementById('mainContent').style.display = 'block';
+                        loadViewer();
+                    }, 1000);
+                }
+            }, 50);
+        }
+
+        function loadViewer() {
+            // Load the first view
+            changeView(0);
+            
+            // Create thumbnails
+            createThumbnails();
+            
+            // Add event listeners
+            document.addEventListener('keydown', handleKeyPress);
+            document.addEventListener('fullscreenchange', handleFullscreenChange);
+            
+            // Touch support for mobile
+            let touchStartX = 0;
+            let touchStartY = 0;
+            
+            document.getElementById('mainViewer').addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            });
+            
+            document.getElementById('mainViewer').addEventListener('touchend', (e) => {
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                const deltaX = touchEndX - touchStartX;
+                const deltaY = touchEndY - touchStartY;
+                
+                if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+                    if (deltaX > 0) {
+                        previousView();
+                    } else {
+                        nextView();
+                    }
+                }
+            });
+        }
+
+        function changeView(index) {
+            if (index < 0 || index >= kitchenViews.length) return;
+            
+            currentView = index;
+            const view = kitchenViews[index];
+            
+            // Update main image
+            document.getElementById('mainImage').src = view.image;
+            
+            // Update view info
+            document.getElementById('viewName').textContent = view.name;
+            document.getElementById('viewDescription').textContent = view.description;
+            document.getElementById('viewAngle').textContent = view.angle;
+            
+            // Update button states
+            document.querySelectorAll('.view-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+            
+            // Update thumbnail states
+            document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
+                thumb.classList.toggle('active', i === index);
+            });
+        }
+
+        function createThumbnails() {
+            const container = document.querySelector('.thumbnails');
+            container.innerHTML = '';
+            
+            kitchenViews.forEach((view, index) => {
+                const thumbnail = document.createElement('div');
+                thumbnail.className = `thumbnail ${index === 0 ? 'active' : ''}`;
+                thumbnail.onclick = () => changeView(index);
+                
+                thumbnail.innerHTML = `
+                    <img src="${view.image}" alt="${view.name}" />
+                    <div class="thumbnail-info">
+                        <h4>${view.name}</h4>
+                        <p>${view.angle}</p>
+                    </div>
+                `;
+                
+                container.appendChild(thumbnail);
+            });
+        }
+
+        function toggleFullscreen() {
+            const viewer = document.getElementById('mainViewer');
+            
+            if (!document.fullscreenElement) {
+                viewer.requestFullscreen().then(() => {
+                    isFullscreen = true;
+                    document.getElementById('fullscreenText').textContent = '🔽 Exit Fullscreen';
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    isFullscreen = false;
+                    document.getElementById('fullscreenText').textContent = '🔍 Fullscreen';
+                });
+            }
+        }
+
+        function downloadRender() {
+            const view = kitchenViews[currentView];
+            const link = document.createElement('a');
+            link.href = view.image;
+            link.download = `kitchen-4k-${view.name.toLowerCase().replace(/\s+/g, '-')}.jpg`;
+            link.click();
+        }
+
+        function shareViewer() {
+            if (navigator.share) {
+                navigator.share({
+                    title: '4K Kitchen Visualizer',
+                    text: 'Check out this amazing 4K kitchen visualization!',
+                    url: window.location.href
+                });
+            } else {
+                // Fallback for browsers without Web Share API
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    alert('Link copied to clipboard!');
+                });
+            }
+        }
+
+        function nextView() {
+            changeView((currentView + 1) % kitchenViews.length);
+        }
+
+        function previousView() {
+            changeView((currentView - 1 + kitchenViews.length) % kitchenViews.length);
+        }
+
+        function handleKeyPress(e) {
+            switch(e.key) {
+                case 'ArrowLeft':
+                    previousView();
+                    break;
+                case 'ArrowRight':
+                    nextView();
+                    break;
+                case 'f':
+                case 'F':
+                    toggleFullscreen();
+                    break;
+                case 'd':
+                case 'D':
+                    downloadRender();
+                    break;
+            }
+        }
+
+        function handleFullscreenChange() {
+            if (!document.fullscreenElement) {
+                isFullscreen = false;
+                document.getElementById('fullscreenText').textContent = '🔍 Fullscreen';
+            }
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', initViewer);
+
+        // Auto-advance slides every 10 seconds (can be disabled)
+        setInterval(() => {
+            if (!isFullscreen && document.hasFocus()) {
+                nextView();
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
